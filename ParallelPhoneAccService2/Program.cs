@@ -57,7 +57,7 @@ namespace ParallelPhoneAccService2
                 {
                     if (env == Env.Debugging)
                     {
-                        Console.WriteLine("Thread {0}: aiting for IDLists to process", Thread.CurrentThread.ManagedThreadId);
+                        Console.WriteLine("Thread {0}: waiting for IDLists to process", Thread.CurrentThread.ManagedThreadId);
                     }
 
                     // Wait on the hasIDLists event
