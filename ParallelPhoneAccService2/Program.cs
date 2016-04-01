@@ -27,13 +27,10 @@ namespace ParallelPhoneAccService2
 
         // Set env to Debugging to display log messages
         // Set env to run the program at full speed
-        private const Env env = Env.Debugging;
+        private const Env env = Env.Normal;
 
         // AutoResetEvent for signaling when to start processing IDlists
         private static AutoResetEvent hasIDLists = new AutoResetEvent(false);
-
-        // AutoResetEvent for signaling when all accounts have been processed
-        private static AutoResetEvent isFinished = new AutoResetEvent(false);
 
         static void Main(string[] args)
         {
@@ -129,7 +126,23 @@ namespace ParallelPhoneAccService2
                 }
 
                 // Once all accounts have been processed
-                isFinished.Set();
+                // Sort the results by name
+                accounts = accounts.OrderBy(account => account.name).ToList();
+
+                // Stop timing
+                stopWatch.Stop();
+
+                long time = stopWatch.ElapsedMilliseconds;
+
+                // Print out the result
+                Console.WriteLine();
+                Console.WriteLine("Time elapsed: {0} ms", time);
+                Console.WriteLine(accounts.Count + " results sorted by name: ");
+                for (int i = 0; i < accounts.Count; i++)
+                {
+                    Console.WriteLine(accounts[i].ToString());
+                }
+
             });
 
             #endregion            
@@ -181,33 +194,6 @@ namespace ParallelPhoneAccService2
                 lock (thisLock)
                 {
                     allListRetrieved = true;
-                }
-            });
-
-            #endregion
-
-            #region processResultTask
-
-            Task processResultTask = Task.Run(() => 
-            {
-                // Wait until the isFinished event is raised
-                isFinished.WaitOne();
-
-                // Sort the results by name
-                accounts = accounts.OrderBy(account => account.name).ToList();
-
-                // Stop timing
-                stopWatch.Stop();
-
-                long time = stopWatch.ElapsedMilliseconds;
-
-                // Print out the result
-                Console.WriteLine();
-                Console.WriteLine("Time elapsed: {0} ms", time);
-                Console.WriteLine(accounts.Count + " results sorted by name: ");
-                for (int i = 0; i < accounts.Count; i++)
-                {
-                    Console.WriteLine(accounts[i].ToString());
                 }
             });
 
