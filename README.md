@@ -87,10 +87,19 @@ order of age as a result of some unknown ordering in the database), the program 
 
 **Parallelism Implementation**
 
-A separate thread is spawn to retrieve the account IDs in the background.
+To take advantage of the threadpool management and optimization services provided by the Task class in .NET, parallel activities 
+are implemented as tasks instead of as explicit threads. There are two main activities that are implemented as parallel tasks: 
+downloading the ID lists, and processing the ID lists.
 
 While the IDs are being retrieved, a Parallel.foreach loop is used to process the retrieved ID in each ID list. 
 Using Parallel.foreach, each ID is assigned to one thread, which uses the ID to retrieve the account in parallel. 
+
+The Parallel.foreach loop is nested inside a while loop, which keeps looping until there's no ID List left to process.
+Implementing the while loop as a busy wait/spinlock loop will cause a lot of CPU cycles to be wasted when the while loop
+is looping to wait for ID lists to be downloaded.
+To prevent this, an AutoResetEvent object is used. Each time an ID list is downloaded, the event object is raised to
+signal to the while loop that there is ID list to be processed. The while loop will only proceed if it receives this signal.
+Otherwise, the loop will pause, and threads can be reallocated to do some other useful work.
 
 In this second version of ParallelPhoneAccService, once the account has been retrieved, the thread will simply add it
 to the list of potential results right away. Once all of the IDs in an ID list have been processed, and control is returned to 
